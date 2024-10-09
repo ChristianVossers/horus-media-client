@@ -152,7 +152,6 @@ def get_spherical_camera_frames(recordingID):
     results = Frame.query(frames,recordingid=recordingID,order_by="index")
 
     with torch.no_grad():
-        #model = ScalableRaftModel()
         for index, t in enumerate(results):
             results = Frame.query(frames, recordingid=t.recordingid, index=t.index, order_by="index",)
             frame = next(results)
@@ -187,7 +186,7 @@ def get_spherical_camera_frames(recordingID):
             #processExpeditSAM_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
             #processSAM_HQ_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
             #processSAM_V2_onnx_All(np_image=npcv2_img,bboxes=bboxes,outputFileName=outputFileName)
-            processSAM_V2_Ultralytics_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
+            #processSAM_V2_Ultralytics_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
 
             #imgPixel = to_bbox_GroundPoints(bboxes=bboxResults)
             #add_imgPixels_as_geoPixels(sphere_image=sphere_image,imgPixel=imgPixel,index=frame.index,recordingid=frame.recordingid, uuid=frame.uuid)
@@ -197,12 +196,6 @@ def get_spherical_camera_frames(recordingID):
             #processOwl2_All(pil_image=pil_image,outputFilename=outputFileName,text=['pole'])
             #processYoloWorld_All(pil_image=pil_image,outputFileName=outputFileName)
 
-            # if (index > 0):
-            #     flowdata = ScalableRaft(model,np_img_old,np_img)
-            #     img_new = save_flow_to_arrow_image(np_img,flowdata)
-            #     cv2.imwrite("./output/" + str(frame.index) + "_flow.png", img_new)
-            # np_img_old = np_img
-            
             print(frame.recordingid," index: " + str(frame.index)," ",frame.uuid," lon: ",frame.longitude," lat: ",frame.latitude," heading: ",frame.azimuth)
             # loc_car = {'Index':frame.index,'recordingID':frame.recordingid,'uuID':frame.uuid,'lon':frame.longitude,'lat':frame.latitude,'heading':frame.azimuth}
             # locaties_car = locaties_car._append(loc_car, ignore_index = True)

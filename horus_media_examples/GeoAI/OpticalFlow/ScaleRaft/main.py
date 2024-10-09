@@ -16,7 +16,6 @@ from .core.utils.utils import InputPadder
 # from core.raft_cscv import RAFT343used
 # from core.utils.utils import InputPadder
 
-
 def getDefaultArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', help="restore checkpoint", default='./horus_media_examples/GeoAI/models/ScalableRAFT.geoAI')

@@ -5,3 +5,4 @@ __pycache__
 /*.egg-info/
 models
 /horus_media_examples/Connection_settings.py
+output
