@@ -34,9 +34,9 @@ def processOwl2_All(pil_image, outputFilename, text, box_threshold=0.21):
     boxes, scores, labels = processOwl2(pil_image=pil_image,text=text,box_threshold=box_threshold)
     saveResultImage(pil_image=pil_image, outputFilename=outputFilename,texts=text,boxes=boxes,scores=scores,labels=labels)
 
-pil_image = Image.open('horus_media_examples/GeoAI/input/img_01120_1_ab7f2e61-a1ba-4c61-81ae-81a136cc54bb.png')
-texts = [['pole', 'traffic light']]
-processOwl2_All(pil_image=pil_image,outputFilename='horus_media_examples/GeoAI/output/test.png', text=texts,box_threshold=0.21)
+# pil_image = Image.open('horus_media_examples/GeoAI/input/img_01120_1_ab7f2e61-a1ba-4c61-81ae-81a136cc54bb.png')
+# texts = [['pole', 'traffic light']]
+# processOwl2_All(pil_image=pil_image,outputFilename='horus_media_examples/GeoAI/output/test.png', text=texts,box_threshold=0.21)
 
 
 
