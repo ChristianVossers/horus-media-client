@@ -47,7 +47,7 @@ def processFlorence2(pil_image, text, command):
       max_new_tokens=1024,
       early_stopping=False,
       do_sample=False,
-      num_beams=3,
+      num_beams=9,
     )
     generated_text = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
     parsed_answer = processor.post_process_generation(generated_text,task=command,image_size=(pil_image.width, pil_image.height))
