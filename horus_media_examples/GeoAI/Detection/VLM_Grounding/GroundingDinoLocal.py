@@ -6,7 +6,7 @@ from PIL import Image
 
 model = load_model('horus_media_examples/GeoAI/config/groundingdino_Base.py', 'horus_media_examples/GeoAI/models/groundingdino_Base.geoAI',device="cuda:0")
 #model = load_model('horus_media_examples/GeoAI/config/groundingdino_Tiny.py', 'horus_media_examples/GeoAI/models/groundingdino_Tiny.geoAI',device="cuda:0")
-#model = load_model('horus_media_examples/GeoAI/config/config_cfg_gdinot-1.8m-odvg.py', 'horus_media_examples/GeoAI/models/gdinot-1.8m-odvg.pth',device="cuda:0")
+#model = load_model('horus_media_examples/GeoAI/config/config_cfg_gdinot-1.8m-odvg.py', 'horus_media_examples/GeoAI/models/groundingdino_Base-odvg.pth',device="cuda:0")
 
 def load_image(pil_image):
     transform = T.Compose([T.RandomResize([800], max_size=1333), T.ToTensor(),T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
