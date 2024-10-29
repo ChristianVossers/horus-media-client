@@ -27,7 +27,7 @@ from Connection_settings import connection_settings, connection_details, get_dat
 
 # from GeoAI.Detection.VLM_Grounding.GroundingDinoLocal import processGroundingDino_All
 # from GeoAI.Detection.VLM_Grounding.GroundingDinoPipeline import processGroundingDinoPipeline_All
-# from GeoAI.Detection.VLM_Grounding.GroundingOwl2Transformers import processOwl2_All
+# from GeoAI.Detection.VLM_Grounding.GroundingOwl2Transformers import processOwl2_All, processOwl2
 from GeoAI.Detection.VLM_Grounding.GroundingYoloWorldUltralytics import processYoloWorld
 # from GeoAI.Detection.VLM_Grounding.GroundedYoloWorldInference import processYoloWorld_All
 # from GeoAI.Detection.VLM_Grounding.GroundingFlorence2 import processFlorence2Grounding_All
@@ -42,9 +42,9 @@ from GeoAI.Detection.VLM_Grounding.GroundingYoloWorldUltralytics import processY
 # from GeoAI.Segmentation.NonGrounded_Segment.SlimSAM_transformers import processSlimSam_All
 # from GeoAI.Segmentation.NonGrounded_Segment.SAM_HQ_Local import processSAM_HQ_All
 # from GeoAI.Segmentation.NonGrounded_Segment.SAM_V2_ONNX import processSAM_V2_onnx_All
-from GeoAI.Segmentation.NonGrounded_Segment.SAM_V2_Ultralytics import processSAM_V2_Ultralytics_All
+# from GeoAI.Segmentation.NonGrounded_Segment.SAM_V2_Ultralytics import processSAM_V2_Ultralytics_All
 
-from GeoAI.BboxConversion import convert_bboxes_Yolo, draw_bboxes, draw_Points, to_bbox_GroundPoints, to_bbox_from_bboxResults
+from GeoAI.BboxConversion import convert_bboxes_Yolo, convert_bboxes_Owl2, draw_bboxes, draw_Points, to_bbox_GroundPoints, to_bbox_from_bboxResults
 
 import pandas as pd
 from geopandas import GeoDataFrame
@@ -151,62 +151,72 @@ def get_spherical_camera_frames(recordingID):
     frames = Frames(connection)                                                     # Step 2. Get a recorded frame and place the camera onto that 'frame'
     results = Frame.query(frames,recordingid=recordingID,order_by="index")
 
-    with torch.no_grad():
-        for index, t in enumerate(results):
-            results = Frame.query(frames, recordingid=t.recordingid, index=t.index, order_by="index",)
-            frame = next(results)
-            if frame is None: 
-                print("No frames!") 
-                sys.exit()
-            
-            front_camera.set_frame(recording, frame)
-            #front_camera.set_pitch(float(-20.0))
-            sphere_image = front_camera.acquire(Size(1920,1080))
-            
-            bytes_img = sphere_image.get_image().getvalue()
-            cv2_img = cv2.imdecode(np.frombuffer(bytes_img, np.uint8), 1)
-            pil_image = Image.open(io.BytesIO(bytes_img))
-            np_img = np.array(pil_image)
-            npcv2_img = np.array(cv2_img)
-            outputFileName = "horus_media_examples/output/" + str(frame.index) + ".png"
-            #processTransformers_All(pil_image,[5,6,7],outputFileName)
-            #processMmSegmentation(np_img,[5,6,7],outputFileName)
-            #processGroundingDino_All(pil_image,np_img,outputFileName,text="pole",outputFileName)
-            #processGroundingDinoPipeline_All(pil_image=pil_image,text=["pole."],outputFileName=outputFileName)
-            #processDinoGroundedSam_All(pil_image=pil_image,text=["pole."],np_image=np_img,outputFileName=outputFileName)
-            #processMerveDinoGroundedSam_All(pil_image=pil_image,text=["pole."],np_image=np_img,outputFileName=outputFileName)
-            #processMerveDinoGroundedSam_All(pil_image=pil_image,np_image=np_img,text= ["pole"],outputFileName=outputFileName)
-            #processGroundedLangSam_All(pil_image=pil_image,text="pole",box_threshold=0.24,text_threshold=0.2,outputFileName=outputFileName)
-            
-            #processYoloWorld_All(pil_image=cv2_img,outputFileName=outputFileName)   # Search text is hard coded in class
-            bboxResults = convert_bboxes_Yolo(processYoloWorld(pil_image=cv2_img))
-            bboxes = to_bbox_from_bboxResults(bboxresult_List=bboxResults)
-            #processSAM_V1_All(cv2_image=cv2_img,bboxes=bboxes,outputFilename=outputFileName)
-            #processSlimSam_All(pil_image=pil_image,bboxes=bboxes,outputFileName=outputFileName)
-            #processExpeditSAM_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
-            #processSAM_HQ_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
-            #processSAM_V2_onnx_All(np_image=npcv2_img,bboxes=bboxes,outputFileName=outputFileName)
-            #processSAM_V2_Ultralytics_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
+    startIndex = 800
+    for index, t in enumerate(results):
+        results = Frame.query(frames, recordingid=t.recordingid, index=t.index, order_by="index",)
+        if index < startIndex: continue
+        frame = next(results)
+        if frame is None: 
+            print("No frames!") 
+            sys.exit()
+        
+        front_camera.set_frame(recording, frame)
+        #front_camera.set_pitch(float(-20.0))
+        sphere_image = front_camera.acquire(Size(1920,1080))
+        
+        bytes_img = sphere_image.get_image().getvalue()
+        cv2_img = cv2.imdecode(np.frombuffer(bytes_img, np.uint8), 1)
+        pil_image = Image.open(io.BytesIO(bytes_img))
+        np_img = np.array(pil_image)
+        npcv2_img = np.array(cv2_img)
+        outputFileName = "horus_media_examples/output/" + f"{frame.index:04d}"
+        #processTransformers_All(pil_image,[5,6,7],outputFileName)
+        #processMmSegmentation(np_img,[5,6,7],outputFileName)
+        #processGroundingDino_All(pil_image,np_img,outputFileName,text="pole")
+        #processGroundingDinoPipeline_All(pil_image=pil_image,text=["pole."],outputFileName=outputFileName)
+        #processDinoGroundedSam_All(pil_image=pil_image,text=["pole."],np_image=np_img,outputFileName=outputFileName)
+        #processMerveDinoGroundedSam_All(pil_image=pil_image,text=["pole."],np_image=np_img,outputFileName=outputFileName)
+        #processMerveDinoGroundedSam_All(pil_image=pil_image,np_image=np_img,text= ["pole"],outputFileName=outputFileName)
+        #processGroundedLangSam_All(pil_image=pil_image,text="pole",box_threshold=0.24,text_threshold=0.2,outputFileName=outputFileName)
+        #processYoloWorld_All(pil_image=cv2_img,outputFileName=outputFileName)   # Search text is hard coded in class
 
-            #imgPixel = to_bbox_GroundPoints(bboxes=bboxResults)
-            #add_imgPixels_as_geoPixels(sphere_image=sphere_image,imgPixel=imgPixel,index=frame.index,recordingid=frame.recordingid, uuid=frame.uuid)
-            #draw_Points(pil_image=pil_image,points=imgPixel)
-            #processFlorence2Grounding_All(pil_image=pil_image,outputFilename=outputFileName,text='pole')
-            #processFlorence2Segment_All(pil_image=pil_image,outputFilename=outputFileName,text='pole')
-            #processOwl2_All(pil_image=pil_image,outputFilename=outputFileName,text=['pole'])
-            #processYoloWorld_All(pil_image=pil_image,outputFileName=outputFileName)
+        #processSAM_V1_All(cv2_image=cv2_img,bboxes=bboxes,outputFilename=outputFileName)
+        #processSlimSam_All(pil_image=pil_image,bboxes=bboxes,outputFileName=outputFileName)
+        #processExpeditSAM_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
+        #processSAM_HQ_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
+        #processSAM_V2_onnx_All(np_image=npcv2_img,bboxes=bboxes,outputFileName=outputFileName)
+        #processSAM_V2_Ultralytics_All(cv2_image=cv2_img,bboxes=bboxes,outputFileName=outputFileName)
 
-            print(frame.recordingid," index: " + str(frame.index)," ",frame.uuid," lon: ",frame.longitude," lat: ",frame.latitude," heading: ",frame.azimuth)
-            # loc_car = {'Index':frame.index,'recordingID':frame.recordingid,'uuID':frame.uuid,'lon':frame.longitude,'lat':frame.latitude,'heading':frame.azimuth}
-            # locaties_car = locaties_car._append(loc_car, ignore_index = True)
+        #processFlorence2Grounding_All(pil_image=pil_image,outputFilename=outputFileName,text='pole')
+        #processFlorence2Segment_All(pil_image=pil_image,outputFilename=outputFileName,text='pole')
+        #processOwl2_All(pil_image=pil_image,outputFilename=outputFileName,text=['pole'],box_threshold=0.19)
+        #processYoloWorld_All(pil_image=pil_image,outputFileName=outputFileName)
 
-            #if (index > 500): break
+        # yolobox = processYoloWorld(pil_image=cv2_img)
+        # bboxResults = convert_bboxes_Yolo(yolobox)
+        # owl2box,owl2conf,owl2labels = processOwl2(pil_image=pil_image,text=['pole', 'traffic light'],box_threshold=0.19)
+        # bboxResults = convert_bboxes_Owl2(boxes=owl2box, confs=owl2conf,labels=owl2labels)
+        #draw_bboxes(pil_image=pil_image,bboxes=bboxResults)
+        
+        # pil_image.save(outputFileName + ".png")
+        # bboxes = to_bbox_from_bboxResults(bboxresult_List=bboxResults)
+        # np.save(outputFileName + ".npy", bboxes)
 
-            # pil_image.save("horus_media_examples/output/" + str(frame.index) + "_front_pil.png")
-            # get_and_save_image_file(recording, frame,front_camera, "_front")
-            # get_and_save_image_file(recording, frame,back_camera , "_back" )
-            # get_and_save_image_file(recording, frame,right_camera, "_right")
-            # get_and_save_image_file(recording, frame,left_camera , "_left" )
+        #imgPixel = to_bbox_GroundPoints(bboxes=bboxResults)
+        #add_imgPixels_as_geoPixels(sphere_image=sphere_image,imgPixel=imgPixel,index=frame.index,recordingid=frame.recordingid, uuid=frame.uuid)
+        #draw_Points(pil_image=pil_image,points=imgPixel)
+
+        print(frame.recordingid," index: " + str(frame.index)," ",frame.uuid," lon: ",frame.longitude," lat: ",frame.latitude," heading: ",frame.azimuth)
+        # loc_car = {'Index':frame.index,'recordingID':frame.recordingid,'uuID':frame.uuid,'lon':frame.longitude,'lat':frame.latitude,'heading':frame.azimuth}
+        # locaties_car = locaties_car._append(loc_car, ignore_index = True)
+
+        #if (index > 500): break
+        
+        # pil_image.save("horus_media_examples/output/" + f"{frame.index:04d}" + ".png")
+        # get_and_save_image_file(recording, frame,front_camera, "_front")
+        # get_and_save_image_file(recording, frame,back_camera , "_back" )
+        # get_and_save_image_file(recording, frame,right_camera, "_right")
+        # get_and_save_image_file(recording, frame,left_camera , "_left" )
     # locaties_car['geometry'] = locaties_car.apply(lambda x: Point((float(x.lon), float(x.lat))), axis=1)
     # locaties_car = GeoDataFrame(locaties_car, geometry='geometry') #,crs="EPSG:28992"
     # locaties_car.to_file('Locations recording=' + str(recordingID) + '.geojson', driver='GeoJSON') 

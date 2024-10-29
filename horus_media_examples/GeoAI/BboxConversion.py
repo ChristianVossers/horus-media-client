@@ -9,6 +9,16 @@ def convert_bboxes_Yolo(result):
         bboxes.append(BBoxResult(x1=x1,y1=y1,x2=x2,y2=y2,conf=float(box.conf[0]),classID=int(box.cls[0]) + 1))
     return bboxes
 
+def convert_bboxes_Owl2(boxes, confs, labels):
+    bboxes = []
+    boxes =  boxes.cpu().numpy()
+    confs =  confs.cpu().numpy()
+    labels= labels.cpu().numpy()
+    for box,conf,label in zip(boxes,confs,labels):
+        x1, y1, x2, y2 = box[0],box[1],box[2],box[3]
+        bboxes.append(BBoxResult(x1=x1,y1=y1,x2=x2,y2=y2,conf=float(conf),classID=int(label)))
+    return bboxes
+
 def to_bbox_centroids(bboxes):
     points = []
     for box in bboxes:
